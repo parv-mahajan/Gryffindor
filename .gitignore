@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Logs
 logs
 *.log
@@ -30,3 +31,18 @@ dist-ssr
 # Local database
 backend/civicsense.db
 backend/civicsense.db-journal
+=======
+.venv/
+__pycache__/
+*.pyc
+backend/uploads/*
+!backend/uploads/.gitkeep
+node_modules/
+frontend/dist/
+frontend/tsconfig.tsbuildinfo
+.env
+.local/
+*.log
+.DS_Store
+Thumbs.db
+>>>>>>> origin/master
