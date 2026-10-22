@@ -1,188 +1,239 @@
-# CivicSense
+# CivicSense 🏙️
+### Smarter Cities Start with Every Citizen.
 
-AI powered civic intelligence and issue resolution for a campus estate.
+**CivicSense** is an AI-powered civic issue reporting and resolution platform designed to help citizens report local infrastructure problems and help administrators organize, prioritize, and track complaints through a centralized system.
 
-A citizen reports an issue with a description, a photo and a map pin. CivicSense
-classifies the issue, scores its priority, routes it to the right department,
-detects duplicates so the same problem is worked once, and flags anything the
-model is not confident about for a human to check.
+From potholes and garbage accumulation to drainage issues and broken streetlights, CivicSense aims to make civic reporting more intelligent, transparent, and accountable.
 
-![Operations dashboard](frontend/scripts/shot-dashboard.png)
+---
 
-## What it does
+## 🚀 Problem Statement
 
-| Capability | How |
-| --- | --- |
-| **Issue classification** | MiniLM sentence embeddings against per-category prototypes, blended with a keyword rule layer. Six categories: pothole, garbage, water leak, streetlight, drainage, other. |
-| **Human in the loop** | Low confidence (< 0.50) or a small gap between the top two classes flags the report for review. An admin confirms or overrides the category. |
-| **Photo understanding** | Optional zero-shot CLIP classification of the uploaded photo, fused with the text signal. |
-| **Priority scoring** | Five weighted factors — safety risk, severity, community impact, wait time, related reports — plus an SLA escalation boost. Every point is explained. |
-| **Duplicate detection** | Text cosine similarity + geo proximity + time decay produce `duplicate` and `related` links. A confirmed duplicate is merged into one incident instead of being worked twice. |
-| **Hotspot detection** | Recurring clusters of the same category in one place, ranked by count and how many months they have been active. |
-| **Routing and SLA** | Category to department rules, a capacity-aware workload view and a response deadline per report. |
-| **Audit trail** | Every classification, score, status change, review decision and link merge is written to an append-only log. |
-| **Geo spatial** | PostgreSQL + PostGIS, geography points and GiST indexes for radius queries. |
+Citizens often face difficulties reporting civic issues and tracking their resolution. Fragmented reporting channels, duplicate complaints, inconsistent prioritization, and limited visibility into complaint status can make civic issue management inefficient.
 
-## Screenshots
+CivicSense addresses these challenges by bringing civic reporting, AI-assisted analysis, location intelligence, and administrative review into one platform.
 
-| | |
-| --- | --- |
-| ![Admin sign in](frontend/scripts/shot-login.png) | ![Submit a report](frontend/scripts/shot-submitted.png) |
-| Admin sign in | Report submitted with the AI breakdown |
-| ![Track a ticket](frontend/scripts/shot-ticket.png) | |
-| Track a ticket | |
+## 💡 Our Solution
 
-## Tech stack
+CivicSense provides a centralized workflow that transforms citizen reports into structured, trackable civic tickets.
 
-- **Backend** — FastAPI, SQLAlchemy 2, PostgreSQL 16 + PostGIS 3.6, scikit-learn, sentence-transformers (all-MiniLM-L6-v2), optional CLIP via transformers
-- **Frontend** — React 19, TypeScript, Vite, Tailwind CSS 4, React Leaflet, Recharts
-- **Auth** — PBKDF2-SHA256 password hashes, opaque session tokens in the database
+- Submit civic complaints with descriptions and optional image evidence.
+- Associate reports with geographical locations.
+- Use AI-assisted text analysis to suggest issue categories.
+- Identify potential duplicate complaints.
+- Generate explainable priority scores.
+- Enable administrators to review reports and manage complaint status.
+- Track tickets and maintain an audit trail of important actions.
 
-## Quick start
+*AI-generated suggestions support administrative decisions; they do not replace human review.*
 
-### Docker (everything at once)
+## ✨ Key Features
+
+### 📝 Civic Issue Reporting
+Submit complaints about common civic problems through a centralized reporting interface.
+
+### 📍 Geospatial Intelligence
+Use PostgreSQL and PostGIS to store geographical information and support location-based queries.
+
+### 🤖 AI-Assisted Classification
+Use MiniLM-based text embeddings and domain-specific rules to help categorize incoming complaints.
+
+### 🔄 Duplicate Detection
+Identify potentially related complaints using text similarity, geographical distance, and recency.
+
+### ⚡ Explainable Priority Scoring
+Evaluate complaints using configurable factors to help administrators prioritize their work.
+
+### 🛠️ Administrative Dashboard
+Support complaint review, category correction, duplicate management, assignment workflows, and status updates.
+
+### 🎫 Complaint Tracking
+Provide ticket-based status lookup so citizens can follow the progress of their reports.
+
+### 📊 Civic Operations Insights
+Support operational features such as hotspot analysis, department routing, workload views, and service-level agreement (SLA) tracking, as documented in the project.
+
+### 🖼️ Optional Image Intelligence
+CLIP-based image classification can be enabled as an optional component. It is disabled by default in the documented configuration.
+
+## 🧠 AI Workflow
+
+CivicSense combines language understanding with configurable business rules to assist civic issue management.
+
+1. **Input:** Receive a complaint description and optional image.
+2. **Text Analysis:** Generate semantic embeddings using MiniLM and compare the report against category representations.
+3. **Rule-Based Evidence:** Apply domain-specific keyword rules to supplement text similarity.
+4. **Priority Assessment:** Calculate a score from configured priority factors.
+5. **Duplicate Matching:** Compare text similarity, geographical proximity, and report recency.
+6. **Human Review:** Allow administrators to confirm or override classifications and review duplicate suggestions.
+7. **Tracking:** Maintain ticket status and relevant audit events.
+
+No model accuracy or real-world performance figures are claimed without evaluation.
+
+## 🏗️ Technology Stack
+
+| Component | Technologies |
+|---|---|
+| Frontend | React, TypeScript, Vite |
+| UI and Styling | Tailwind CSS |
+| Maps and Visualization | React Leaflet, Recharts |
+| Backend | Python, FastAPI |
+| ORM | SQLAlchemy |
+| Database | PostgreSQL |
+| Geospatial Processing | PostGIS |
+| NLP and Semantic Similarity | Sentence Transformers, MiniLM |
+| Optional Computer Vision | CLIP, Transformers |
+| Containerization | Docker, Docker Compose |
+
+*The stack and optional components are based on the repository's documented configuration.*
+
+## 🏛️ System Architecture
+
+The platform follows a modular architecture:
+
+```text
+Citizen / Administrator
+          |
+          v
+    React Frontend
+          |
+          v
+    FastAPI Backend
+          |
+          v
+   Business Logic Layer
+    /      |       \
+   AI   Priority   Duplicate
+ Services Scoring   Detection
+          |
+          v
+ PostgreSQL + PostGIS
+          |
+          v
+ Complaint Records,
+ Locations, Tickets
+ and Audit Events
+```
+
+The frontend communicates with the backend through API endpoints. The backend coordinates complaint processing, AI-assisted analysis, priority assessment, administrative workflows, and database operations.
+
+## ⚙️ Getting Started
+
+### Prerequisites
+
+Make sure the following tools are installed:
+
+- Git
+- Docker
+- Docker Compose
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/nitinkumargupta613-tech/hello-.git
+```
+
+### 2. Navigate to the Project Directory
+
+```bash
+cd hello-
+```
+
+### 3. Configure Environment Variables
+
+Review the repository's environment configuration and setup documentation. Create the required environment file and configure database credentials, authentication settings, and optional AI components as needed.
+
+Do not commit passwords, secret keys, or other sensitive configuration values.
+
+### 4. Start the Application
+
+If the repository's Docker Compose configuration is available, start the application using:
 
 ```bash
 docker compose up --build
 ```
 
-- Web app <http://localhost:5173>
-- API docs <http://localhost:8000/docs>
+### 5. Access the Application
 
-The database is seeded automatically with 60 sample reports.
+The documented local development ports are:
 
-### Windows, without Docker
+- **Frontend:** http://localhost:5173
+- **Backend API documentation:** http://localhost:8000/docs
 
-A portable PostgreSQL + PostGIS lives in `.local\`, so no global install is needed.
+Check the repository configuration if your local ports differ.
 
-```powershell
-# 1. database (first run downloads ~430 MB into .local\)
-powershell -ExecutionPolicy Bypass -File scripts\local-db.ps1 setup
-powershell -ExecutionPolicy Bypass -File scripts\local-db.ps1 start
+## 🧪 Demo and Testing
 
-# 2. backend
-cd backend
-py -3.11 -m venv ..\.venv
-..\.venv\Scripts\pip install -r requirements.txt
-..\.venv\Scripts\python scripts\init_db.py
-..\.venv\Scripts\python scripts\seed.py --reset
-..\.venv\Scripts\python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+The repository documentation describes seeded sample reports for demonstrating the platform locally.
 
-# 3. frontend (second terminal)
-cd frontend
-npm install
-npm run dev
-```
+A suggested demo workflow:
 
-Or just run `scripts\run.bat` — it starts the database, the API and the web app
-and opens the browser. `scripts\run.bat --stop` shuts them down again.
+1. Submit a civic complaint.
+2. Inspect the suggested category and priority breakdown.
+3. Review potential duplicate complaints.
+4. Open the administrative interface.
+5. Confirm or override the suggested classification.
+6. Update the ticket status.
+7. Track the complaint using its ticket reference.
 
-### Demo accounts
+Seeded sample records are intended for demonstration and should not be interpreted as real citizen reports or evidence of production usage.
 
-| Username | Password | Role |
-| --- | --- | --- |
-| `admin` | `1234` | admin — full operations dashboard |
-| `reporter` | `1234` | reporter — can report, cannot triage |
-| `citizen` | `1234` | reporter — walk-in citizen |
+## 🔐 Security and Accountability
 
-Reporting an issue and tracking a ticket work signed out. The operations
-dashboard requires an admin sign in.
+CivicSense is designed with administrative access controls and traceable complaint workflows.
 
-## Configuration
+Important considerations include:
 
-Copy `.env.example` to `.env` in the repository root and adjust:
+- Password hashing and session-based authentication.
+- Restricted access to administrative operations.
+- Human review of uncertain AI classifications.
+- Traceability of important status changes and review decisions.
+- Secure handling of environment variables and credentials.
 
-| Variable | Default | Meaning |
-| --- | --- | --- |
-| `DATABASE_URL` | `postgresql+psycopg://postgres@127.0.0.1:5432/civicsense` | Database connection |
-| `CIVICSENSE_CORS_ORIGINS` | `http://localhost:5173` | Comma separated allowed origins |
-| `CIVICSENSE_EMBED_MODEL` | `all-MiniLM-L6-v2` | Sentence embedding model |
-| `CIVICSENSE_MODEL_VERSION` | `minilm-l6-v2@2026-10` | Version stamped on every AI decision |
-| `CIVICSENSE_CLIP_ENABLED` | `0` | Enable zero-shot photo classification |
-| `CIVICSENSE_CLIP_MODEL` | `openai/clip-vit-base-patch32` | CLIP checkpoint |
+A production deployment should additionally undergo security testing, privacy review, and operational validation.
 
-Tunables that are not deployment specific — category prototypes, priority
-weights, review thresholds, duplicate scoring, routing rules — live in
-`backend/app/settings.py`.
+## 🌍 Expected Impact
 
-## API
+CivicSense aims to support more effective civic issue management by enabling:
 
-| Method | Path | Who | What |
-| --- | --- | --- | --- |
-| `POST` | `/auth/login` | public | Exchange credentials for a session token |
-| `GET` | `/auth/me` | signed in | The session behind the token |
-| `POST` | `/auth/logout` | signed in | Revoke the token |
-| `POST` | `/complaints` | public | Report an issue (multipart, optional photo) |
-| `GET` | `/complaints` | admin | Priority queue, filterable |
-| `GET` | `/complaints/{id}` | admin | One report |
-| `GET` | `/complaints/{id}/links` | admin | Duplicate matches for a report |
-| `GET` | `/complaints/links` | admin | Duplicate inbox |
-| `POST` | `/complaints/links/{id}/decision` | admin | Merge or dismiss a suggested duplicate |
-| `PATCH` | `/complaints/{id}/status` | admin | Move a ticket through the lifecycle |
-| `POST` | `/complaints/{id}/review` | admin | Confirm or override the category |
-| `GET` | `/complaints/stats/overview` | admin | Totals |
-| `GET` | `/complaints/stats/workload` | admin | Department load against capacity |
-| `GET` | `/complaints/stats/hotspots` | admin | Recurring clusters |
-| `GET` | `/tickets/{ticket_id}` | public | Track a ticket |
-| `GET` | `/health` | public | Liveness and model version |
+- Better organization of citizen complaints.
+- Reduced duplicate administrative effort.
+- More consistent complaint prioritization.
+- Improved visibility into ticket progress.
+- More informed resource allocation through location-based insights.
+- Greater accountability through traceable workflows.
 
-Interactive documentation lives at <http://localhost:8000/docs>.
+These are intended benefits and require real-world pilot evaluation before measurable impact can be claimed.
 
-## How the AI pieces work
+## 🔮 Future Roadmap
 
-**Classification** blends two signals. The embedding similarity to each
-category's prototypes is gated by an absolute floor and by the specificity of
-the report, so a vague one-liner cannot look confident. The keyword rule layer
-is weighted by how much evidence it found: "choked drain" outweighs a bare
-"waterlogging", which is what keeps an ambiguous report from landing on the
-wrong category.
+- Improve multilingual complaint understanding.
+- Evaluate and calibrate classification and duplicate-detection models.
+- Expand image-based issue analysis.
+- Integrate with official municipal complaint systems where partnerships permit.
+- Improve accessibility for citizens with different digital literacy levels.
+- Add operational analytics based on validated civic data.
+- Conduct pilot studies and measure real-world resolution outcomes.
 
-**Priority** is a weighted sum of five normalised factors. The contribution of
-every factor is stored with the report, so the score can always be explained —
-that is what the breakdown panel renders.
+## 🤝 Contributing
 
-**Duplicates** are scored from text similarity, distance and recency. A report
-that clears the duplicate thresholds joins the incident of the report it
-repeats; weaker candidates stay as suggestions in the duplicate inbox for an
-admin to confirm.
+Contributions, suggestions, and improvements are welcome.
 
-## Project layout
+1. Fork the repository.
+2. Create a feature branch.
+3. Implement and test your changes.
+4. Submit a pull request describing your contribution.
 
-```
-backend/
-  app/
-    config.py          runtime configuration and .env loading
-    settings.py        categories, weights, thresholds, routing rules
-    models.py          SQLAlchemy schema
-    schemas.py         request and response models
-    deps.py            authentication dependencies
-    routers/           auth, complaints, public ticket lookup
-    services/          classifier, scorer, duplicates, workflow, embeddings, images, audit
-  scripts/             init_db, seed, verify, calibrate, inspect_flags
-frontend/
-  src/
-    pages/             Submit, TicketStatus, Login, Dashboard
-    components/        MapPicker, ComplaintDetail, ReviewQueue, DuplicateInbox, WorkloadPanel, HotspotPanel, AddReport, PriorityBreakdown
-    api.ts             typed API client
-    auth.ts            session storage
-scripts/
-  local-db.ps1         portable PostgreSQL + PostGIS for Windows
-  run.bat              one command launcher
-```
+## 👨‍💻 Team
 
-## Checks
+**Project:** CivicSense  
+**Team:** Gryffindor 
+**Team Members:** Parv Mahajan, Pari Tiwari, Nitin Kumar  
+**Institution:** MANIT
 
-```powershell
-# backend acceptance suite (38 checks)
-cd backend; ..\.venv\Scripts\python scripts\verify.py
 
-# headless browser check of the whole flow (23 checks)
-cd frontend; npm install; npx playwright install chromium; node scripts\ui-check.mjs
+### CivicSense
 
-# classifier calibration against the seeded ground truth
-cd backend; ..\.venv\Scripts\python scripts\calibrate.py
-```
+**Report Better. Resolve Smarter. Build Better Cities.**
 
-`verify.py` expects the API to be running on port 8000 and seeds are expected
-to be in place; `scripts\seed.py --reset --count N` reseeds with a different
-number of sample reports.
+GitHub Repository: https://github.com/nitinkumargupta613-tech/hello-
