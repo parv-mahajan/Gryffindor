@@ -4,7 +4,7 @@ const cors = require("cors");
 const { initializeDatabase } = require("./database");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
@@ -17,32 +17,19 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Start the server only after database initialization
 async function startServer() {
-  const { db, saveDatabase } = await initializeDatabase();
+  const { db } = await initializeDatabase();
 
   // GET all complaints
-  app.get("/api/complaints", (req, res) => {
+  app.get("/api/complaints", async (req, res) => {
     try {
-      const result = db.exec(
+      const result = await db.query(
         "SELECT * FROM complaints ORDER BY id DESC"
       );
 
-      let complaints = [];
-
-      if (result.length > 0) {
-        const { columns, values } = result[0];
-
-        complaints = values.map((row) =>
-          Object.fromEntries(
-            columns.map((column, index) => [column, row[index]])
-          )
-        );
-      }
-
       res.json({
         success: true,
-        complaints,
+        complaints: result.rows,
       });
     } catch (error) {
       console.error("GET complaints error:", error);
@@ -54,7 +41,7 @@ async function startServer() {
   });
 
   // POST a new complaint
-  app.post("/api/complaints", (req, res) => {
+  app.post("/api/complaints", async (req, res) => {
     const { title, description, category, location, priority } = req.body;
 
     if (
@@ -75,10 +62,11 @@ async function startServer() {
       : "Medium";
 
     try {
-      db.run(
+      const result = await db.query(
         `INSERT INTO complaints
           (title, description, category, location, priority)
-         VALUES (?, ?, ?, ?, ?)`,
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING *`,
         [
           title.trim(),
           description.trim(),
@@ -88,35 +76,21 @@ async function startServer() {
         ]
       );
 
-      saveDatabase();
-
-      const result = db.exec(
-        "SELECT * FROM complaints ORDER BY id DESC LIMIT 1"
-      );
-
-      const { columns, values } = result[0];
-      const row = values[0];
-
-      const complaint = Object.fromEntries(
-        columns.map((column, index) => [column, row[index]])
-      );
-
-      return res.status(201).json({
+      res.status(201).json({
         success: true,
-        complaint,
+        complaint: result.rows[0],
       });
     } catch (error) {
       console.error("POST complaint error:", error);
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
         message: "Could not save complaint",
       });
     }
   });
 
-  // Start listening for requests
   const server = app.listen(PORT, () => {
-    console.log(`CivicSense backend running at http://localhost:${PORT}`);
+    console.log(`CivicSense backend listening on port ${PORT}`);
     console.log("Available endpoints:");
     console.log("GET  /api/health");
     console.log("GET  /api/complaints");
