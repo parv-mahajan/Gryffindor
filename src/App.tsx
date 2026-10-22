@@ -8,6 +8,11 @@ type Complaint = {
   location: string;
   priority: "High" | "Medium" | "Low";
   status: "Pending" | "In Progress" | "Resolved";
+  emergency?: boolean;
+priorityReason?: string;
+imageData?:string;
+imageName?:string;
+
 };
 
 const initialComplaints: Complaint[] = [
@@ -43,6 +48,25 @@ function findDuplicate(
   });
 }
 
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+      } else {
+        reject(new Error("Could not read image."));
+      }
+    };
+    reader.onerror = () => reject(new Error("Could not read image."));
+    reader.readAsDataURL(file);
+  });
+}
+
+
+
+
+
 function loadComplaints(): Complaint[] {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -58,6 +82,7 @@ function loadComplaints(): Complaint[] {
 
 function App() {
   const [complaints, setComplaints] = useState<Complaint[]>(loadComplaints);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
@@ -80,11 +105,16 @@ function App() {
     (c) => c.priority === "High" && c.status !== "Resolved"
   ).length;
 
+const emergencyCount = complaints.filter(
+  (c) => c.emergency === true && c.status !== "Resolved"
+).length;
+
+
   const filtered = complaints.filter(
     (c) => filter === "All" || c.status === filter
   );
 
-  function submitComplaint(e: React.FormEvent<HTMLFormElement>) {
+  async function submitComplaint(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!title.trim() || !location.trim()) {
       setNotice("Please enter the issue description and location.");
@@ -116,24 +146,67 @@ if (duplicate) {
         ? "Roads"
         : category;
 
+        const emergencyKeywords = [
+  "fire",
+  "flame",
+  "burning",
+  "smoke",
+  "accident",
+  "gas leak",
+  "explosion",
+  "electric shock",
+  "live wire",
+  "building collapse",
+];
+
+const isEmergency = emergencyKeywords.some((word) =>
+  text.includes(word)
+);
+
+const priorityReason = isEmergency
+  ? "Possible emergency or immediate safety risk"
+  : text.includes("danger") || text.includes("leak")
+  ? "Potential safety hazard"
+  : "Routine civic issue requiring review";
+
+
+
+  
+let imageData: string | undefined;
+
+try {
+  if (selectedImage) {
+    imageData = await fileToDataUrl(selectedImage);
+  }
+} catch {
+  setNotice("Could not read the selected image. Please try again.");
+  return;
+}
+
+
     const newComplaint: Complaint = {
       id: Date.now(),
       title: title.trim(),
       category: detectedCategory,
       location: location.trim(),
+      imageData : imageData,
+      imageName: selectedImage?.name,
       priority:
-        text.includes("accident") ||
-        text.includes("danger") ||
-        text.includes("leak") ||
-        text.includes("emergency")
-          ? "High"
-          : "Medium",
+         isEmergency ||
+  text.includes("danger") ||
+  text.includes("leak")
+    ? "High"
+    : "Medium",
+    emergency: isEmergency,
+priorityReason: priorityReason,
       status: "Pending",
+      
     };
 
     setComplaints((previous) => [newComplaint, ...previous]);
     setTitle("");
     setLocation("");
+    setSelectedImage(null);
     setCategory("Roads");
     setShowForm(false);
     setFilter("All");
@@ -212,6 +285,63 @@ if (duplicate) {
                 </select>
               </label>
             </div>
+            <div className="form-group">
+  <label htmlFor="complaint-image">Upload Evidence Photo (optional)</label>
+  <input
+    
+    id="complaint-image"
+  type="file"
+  accept="image/jpeg,image/png,image/webp"
+  onChange={(e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      setSelectedImage(null);
+      return;
+    }
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      window.alert("Please upload a JPG, PNG, or WebP image.");
+      e.target.value = "";
+      setSelectedImage(null);
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      window.alert("Image size must be 5 MB or less.");
+      e.target.value = "";
+      setSelectedImage(null);
+      return;
+    }
+
+    setSelectedImage(file);
+  }}
+    
+    />
+  {selectedImage && (
+  <div className="image-preview">
+    <p>Evidence photo preview:</p>
+    <img
+      src={URL.createObjectURL(selectedImage)}
+      alt="Complaint evidence preview"
+      style={{
+        width: "200px",
+        maxHeight: "200px",
+        objectFit: "cover",
+        borderRadius: "8px",
+      }}
+    />
+  </div>
+)}
+</div>
+
+
             <div className="form-actions">
               <button type="button" className="secondary-btn" onClick={() => setShowForm(false)}>Cancel</button>
               <button className="primary-btn" type="submit">Submit complaint</button>
@@ -240,6 +370,14 @@ if (duplicate) {
             <strong>{resolved}</strong>
             <small>Marked as resolved</small>
           </div>
+          <div className="stat-card emergency-stat">
+          <div className="stat-top">
+            <span>Emergency alerts</span>
+          <span className="stat-icon emergency-icon">🚨</span>
+          </div>
+  <strong>{emergencyCount}</strong>
+  <small>Unresolved possible emergencies</small>
+</div>
         </section>
 
         <section className="content-grid">
@@ -262,8 +400,39 @@ if (duplicate) {
                       <td>
                         <strong>{c.title}</strong>
                         <small>{c.category} · {c.location} · #{String(c.id).slice(-5)}</small>
+                        {c.imageData && (
+  <div>
+    <a href={c.imageData} 
+    download = {c.imageName || "evidence-photo"}
+    >
+      Download evidence photo
+    </a>
+  </div>
+)}
+
+
+
                       </td>
-                      <td><span className={`priority ${c.priority.toLowerCase()}`}>{c.priority}</span></td>
+                      <td>
+
+                      <span
+    className={
+      c.priority === "High"
+        ? "priority-high"
+        : c.priority === "Medium"
+        ? "priority-medium"
+        : "priority-low"
+    }
+  >
+    {c.priority}
+  </span>
+
+  {c.emergency && (
+    <span className="emergency-badge">
+      🚨 EMERGENCY
+    </span>
+  )}
+                      </td>
                       <td>
                         <select
                           className="status-select"
