@@ -1,0 +1,9 @@
+# Normalise line endings in the repository, keep the native ones for
+# Windows scripts.
+* text=auto eol=lf
+
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+*.png binary
+*.jpg binary
+*.ico binary

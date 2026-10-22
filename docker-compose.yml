@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: civicsense-db
+    environment:
+      POSTGRES_USER: civicsense
+      POSTGRES_PASSWORD: civicsense
+      POSTGRES_DB: civicsense
+    ports:
+      - "5432:5432"
+    volumes:
+      - civicsense_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U civicsense -d civicsense"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  api:
+    build: ./backend
+    container_name: civicsense-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://civicsense:civicsense@db:5432/civicsense
+      CIVICSENSE_CORS_ORIGINS: http://localhost:5173
+      CIVICSENSE_CLIP_ENABLED: "0"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/uploads:/app/uploads
+    command: >
+      sh -c "python scripts/init_db.py && python scripts/seed.py --reset
+             && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  web:
+    build: ./frontend
+    container_name: civicsense-web
+    depends_on:
+      - api
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_TARGET: http://api:8000
+
+volumes:
+  civicsense_pgdata:
